@@ -59,9 +59,8 @@ public class UserService {
         return employeeRepository.getEmployees(date.getDayOfWeek())
                 .orElse(new ArrayList<>())
                 .stream()
-                .filter(employee -> employee.getSkills()
-                        .containsAll(skills)
-        ).collect(Collectors.toList());
+                .filter(employee -> employee.getSkills().containsAll(skills))
+        .collect(Collectors.toList());
     }
 
     public List<Owner> getAllOwners() {
