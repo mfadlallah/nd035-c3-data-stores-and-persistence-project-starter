@@ -1,8 +1,15 @@
 package com.udacity.jdnd.course3.critter.pet;
 
+import com.udacity.jdnd.course3.critter.entity.Owner;
+import com.udacity.jdnd.course3.critter.entity.Pet;
+import com.udacity.jdnd.course3.critter.entity.Activity;
+import com.udacity.jdnd.course3.critter.entity.PetType;
+import com.udacity.jdnd.course3.critter.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Handles web requests related to Pets.
@@ -11,23 +18,87 @@ import java.util.List;
 @RequestMapping("/pet")
 public class PetController {
 
+    @Autowired
+    private PetService petService;
+
+    @Autowired
+    private UserService userService;
+
     @PostMapping
     public PetDTO savePet(@RequestBody PetDTO petDTO) {
-        throw new UnsupportedOperationException();
+        Owner owner = userService.getOwner(petDTO.getOwnerId());
+        PetType type = petService.getPetType(petDTO.getTypeId());
+
+        Pet pet = new Pet();
+        pet.addOwner(owner);
+        pet.addPetType(type);
+        pet.setName(petDTO.getName());
+        pet.setBirthDate(petDTO.getBirthDate());
+        pet.setNotes(petDTO.getNotes());
+
+        return PetDTO.convertPetToPetDTO(petService.createPet(pet));
+    }
+
+    @PostMapping("/type")
+    public PetTypeDTO savePetType(@RequestBody PetTypeDTO petTypeDTO) {
+        PetType petType = new PetType();
+        petType.setType(petTypeDTO.getType());
+        return PetTypeDTO.convertPetTypeToPetTypeDTO(petService.createPetType(petType));
+    }
+
+    @PostMapping("/activity")
+    public PetActivityDTO savePetActivity(@RequestBody PetActivityDTO petTypeDTO) {
+        PetType type = petService.getPetType(petTypeDTO.getPetTypeId());
+
+        Activity activity = new Activity();
+        activity.setActivity(petTypeDTO.getActivity());
+        activity.setPetType(type);
+
+        return PetActivityDTO.convertPetBehaviourToPetBehaviourDTO(petService.createPetBehaviour(activity));
+    }
+
+    @GetMapping("/activity/{petTypeId}")
+    public List<PetActivityDTO> getPetTypeActivities(@PathVariable long petTypeId) {
+        return petService.getPetActivitiesByTypeId(petTypeId)
+                .stream()
+                .map(PetActivityDTO::convertPetBehaviourToPetBehaviourDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{petId}")
     public PetDTO getPet(@PathVariable long petId) {
-        throw new UnsupportedOperationException();
+        Pet pet = petService.getPet(petId);
+        PetDTO petDTORes = PetDTO.convertPetToPetDTO(pet);
+        petDTORes.setTypeId(pet.getType().getId());
+        petDTORes.setOwnerId(pet.getOwner().getId());
+        return petDTORes;
     }
 
     @GetMapping
-    public List<PetDTO> getPets(){
-        throw new UnsupportedOperationException();
+    public List<PetDTO> getPets() {
+        return petService
+                .getPets()
+                .stream()
+                .map(pet -> {
+                    PetDTO petDTO = PetDTO.convertPetToPetDTO(pet);
+                    petDTO.setOwnerId(pet.getOwner().getId());
+                    petDTO.setTypeId(pet.getType().getId());
+                    return petDTO;
+                })
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/owner/{ownerId}")
     public List<PetDTO> getPetsByOwner(@PathVariable long ownerId) {
-        throw new UnsupportedOperationException();
+        return petService
+                .getPets(ownerId)
+                .stream()
+                .map(pet -> {
+                    PetDTO petDTO = PetDTO.convertPetToPetDTO(pet);
+                    petDTO.setOwnerId(pet.getOwner().getId());
+                    petDTO.setTypeId(pet.getType().getId());
+                    return petDTO;
+                })
+                .collect(Collectors.toList());
     }
 }

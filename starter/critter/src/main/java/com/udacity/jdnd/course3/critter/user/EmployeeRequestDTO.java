@@ -1,6 +1,7 @@
 package com.udacity.jdnd.course3.critter.user;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 /**
