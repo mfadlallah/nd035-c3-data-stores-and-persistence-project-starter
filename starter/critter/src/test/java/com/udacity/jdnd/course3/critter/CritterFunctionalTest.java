@@ -295,12 +295,6 @@ public class CritterFunctionalTest {
         return petDTO;
     }
 
-    private static PetActivityDTO createActivityDTO() {
-        PetActivityDTO petDTO = new PetActivityDTO();
-        petDTO.setActivity("Feeding");
-        return petDTO;
-    }
-
     private static EmployeeRequestDTO createEmployeeRequestDTO() {
         EmployeeRequestDTO employeeRequestDTO = new EmployeeRequestDTO();
         employeeRequestDTO.setDate(LocalDate.of(2019, 12, 25));

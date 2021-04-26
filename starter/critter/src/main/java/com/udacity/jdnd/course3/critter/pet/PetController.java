@@ -1,5 +1,6 @@
 package com.udacity.jdnd.course3.critter.pet;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.udacity.jdnd.course3.critter.entity.Owner;
 import com.udacity.jdnd.course3.critter.entity.Pet;
 import com.udacity.jdnd.course3.critter.entity.Activity;
@@ -46,23 +47,22 @@ public class PetController {
         return PetTypeDTO.convertPetTypeToPetTypeDTO(petService.createPetType(petType));
     }
 
+    @JsonView(ActivityOnly.class)
     @PostMapping("/activity")
-    public PetActivityDTO savePetActivity(@RequestBody PetActivityDTO petTypeDTO) {
-        PetType type = petService.getPetType(petTypeDTO.getPetTypeId());
+    public Activity savePetActivity(@RequestBody Activity petTypeDTO) {
+        PetType type = petService.getPetType(petTypeDTO.getPetType().getId());
 
         Activity activity = new Activity();
         activity.setActivity(petTypeDTO.getActivity());
         activity.setPetType(type);
 
-        return PetActivityDTO.convertPetBehaviourToPetBehaviourDTO(petService.createPetBehaviour(activity));
+        return petService.createPetBehaviour(activity);
     }
 
+    @JsonView(ActivityOnly.class)
     @GetMapping("/activity/{petTypeId}")
-    public List<PetActivityDTO> getPetTypeActivities(@PathVariable long petTypeId) {
-        return petService.getPetActivitiesByTypeId(petTypeId)
-                .stream()
-                .map(PetActivityDTO::convertPetBehaviourToPetBehaviourDTO)
-                .collect(Collectors.toList());
+    public List<Activity> getPetTypeActivities(@PathVariable long petTypeId) {
+        return petService.getPetActivitiesByTypeId(petTypeId);
     }
 
     @GetMapping("/{petId}")

@@ -1,5 +1,8 @@
 package com.udacity.jdnd.course3.critter.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.udacity.jdnd.course3.critter.pet.ActivityOnly;
+
 import javax.persistence.*;
 import java.util.Objects;
 
@@ -9,6 +12,7 @@ public class Activity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonView(ActivityOnly.class)
     private String activity;
 
     @ManyToOne(fetch = FetchType.LAZY) //many behaviors can belong to one PetType
