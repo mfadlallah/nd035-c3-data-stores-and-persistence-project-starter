@@ -16,7 +16,6 @@ public class EmployeeDTO {
     private String name;
     private Set<EmployeeSkill> skills;
     private Set<DayOfWeek> daysAvailable;
-    private LocalTime timeSlot;
 
     public long getId() {
         return id;
@@ -48,14 +47,6 @@ public class EmployeeDTO {
 
     public void setDaysAvailable(Set<DayOfWeek> daysAvailable) {
         this.daysAvailable = daysAvailable;
-    }
-
-    public LocalTime getTimeSlot() {
-        return timeSlot;
-    }
-
-    public void setTimeSlot(LocalTime timeSlot) {
-        this.timeSlot = timeSlot;
     }
 
     public static EmployeeDTO convertEmployeeToEmployeeDTO(Employee employee) {

@@ -1,5 +1,6 @@
 package com.udacity.jdnd.course3.critter.user;
 
+import com.google.common.collect.Lists;
 import com.udacity.jdnd.course3.critter.entity.Employee;
 import com.udacity.jdnd.course3.critter.entity.Owner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -69,9 +71,9 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-
-    public List<Employee> getEmployeesByIds(List<Long>ids) {
-        return employeeRepository.findAllById(ids);
+    public List<Employee> getAvailableEmployeesByTimeSlot(LocalDate date, LocalTime timeSlot) {
+        return employeeRepository.getEmployeesInTimeSlot(date.getDayOfWeek(), timeSlot)
+                .orElse(Lists.newArrayList());
     }
 
     public List<Owner> getAllOwners() {

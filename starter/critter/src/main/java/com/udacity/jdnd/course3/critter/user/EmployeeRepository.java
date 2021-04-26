@@ -15,8 +15,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("select e from Employee e where :date member of e.daysAvailable")
     Optional<List<Employee>> getEmployees(@Param("date") DayOfWeek date);
 
-
-    @Query("select e from Employee e where :date member of e.daysAvailable and :timeslot >= e.s")
+    @Query("select e from Employee e INNER JOIN e.schedules s " +
+            "WHERE :date member of e.daysAvailable AND :timeslot <= s.startTime OR :timeslot >= s.endTime")
     Optional<List<Employee>> getEmployeesInTimeSlot(@Param("date") DayOfWeek date, @Param("timeslot") LocalTime timeSlot);
 
     @Query("select e from Employee e where :date member of e.daysAvailable and e.id IN (:eids)")

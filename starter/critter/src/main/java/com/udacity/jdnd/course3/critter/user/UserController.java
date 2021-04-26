@@ -87,4 +87,12 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/employee/availabilitytime")
+    public List<EmployeeDTO> findEmployeesInTimeSlot(@RequestBody EmployeeRequestDTO employeeDTO) {
+        return userService
+                .getAvailableEmployeesByTimeSlot(employeeDTO.getDate(), employeeDTO.getTimeSlot())
+                .stream().map(EmployeeDTO::convertEmployeeToEmployeeDTO)
+                .collect(Collectors.toList());
+    }
+
 }

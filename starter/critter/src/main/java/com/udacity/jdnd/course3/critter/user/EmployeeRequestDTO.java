@@ -1,7 +1,7 @@
 package com.udacity.jdnd.course3.critter.user;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalTime;
 import java.util.Set;
 
 /**
@@ -11,6 +11,15 @@ import java.util.Set;
 public class EmployeeRequestDTO {
     private Set<EmployeeSkill> skills;
     private LocalDate date;
+    private LocalTime timeSlot;
+
+    public LocalTime getTimeSlot() {
+        return timeSlot;
+    }
+
+    public void setTimeSlot(LocalTime timeSlot) {
+        this.timeSlot = timeSlot;
+    }
 
     public Set<EmployeeSkill> getSkills() {
         return skills;
