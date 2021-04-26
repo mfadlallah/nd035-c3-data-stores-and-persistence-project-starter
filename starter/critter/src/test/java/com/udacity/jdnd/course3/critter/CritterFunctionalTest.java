@@ -226,7 +226,7 @@ public class CritterFunctionalTest {
         sched3.setPetIds(sched2.getPetIds());
         sched3.setActivities(Sets.newHashSet(EmployeeSkill.FEEDING, EmployeeSkill.WALKING));
         sched3.setDate(sched1.getDate());
-        ScheduleDTO sss = scheduleController.createSchedule(sched3);
+        scheduleController.createSchedule(sched3);
 
         /*
             We now have 3 schedule entries. The third schedule entry has the same employees as the 1st schedule
