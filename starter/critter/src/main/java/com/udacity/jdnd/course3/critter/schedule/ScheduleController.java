@@ -1,9 +1,11 @@
 package com.udacity.jdnd.course3.critter.schedule;
 
-import com.udacity.jdnd.course3.critter.entity.Activity;
 import com.udacity.jdnd.course3.critter.entity.Employee;
 import com.udacity.jdnd.course3.critter.entity.Pet;
 import com.udacity.jdnd.course3.critter.entity.Schedule;
+import com.udacity.jdnd.course3.critter.pet.PetService;
+import com.udacity.jdnd.course3.critter.user.EmployeeNotFoundException;
+import com.udacity.jdnd.course3.critter.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,35 +21,65 @@ public class ScheduleController {
     @Autowired
     private ScheduleService scheduleService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private PetService petService;
+
     @PostMapping
-    public ScheduleDTO createSchedule(@RequestBody ScheduleDTO scheduleDTO) {
+    public ScheduleDTO createSchedule(@RequestBody ScheduleDTO scheduleDTO) throws EmployeeNotFoundException {
+        List<Employee> employees = userService.getAvailableEmployees(
+                scheduleDTO.getEmployeeIds(),
+                scheduleDTO.getDate(),
+                scheduleDTO.getActivities()
+        );
+        if (employees.isEmpty()) throw new EmployeeNotFoundException();
+        List<Pet> pets = petService.getPetsByIds(scheduleDTO.getPetIds());
+
         Schedule schedule = new Schedule();
-        schedule.setSkills(scheduleDTO.getSkills());
+        schedule.setSkills(scheduleDTO.getActivities());
         schedule.setStartTime(scheduleDTO.getStartTime());
         schedule.setEndTime(scheduleDTO.getEndTime());
         schedule.setDate(scheduleDTO.getDate());
-        schedule.setEmployees(scheduleDTO.getEmployeeIds().stream().map(Employee::new).collect(Collectors.toList()));
-        schedule.setPets(scheduleDTO.getPetIds().stream().map(Pet::new).collect(Collectors.toList()));
+        schedule.addAllEmployees(employees);
+        schedule.addAllPets(pets);
         return ScheduleDTO.convertScheduleToScheduleDTO(scheduleService.saveSchedule(schedule));
     }
 
     @GetMapping
     public List<ScheduleDTO> getAllSchedules() {
-        throw new UnsupportedOperationException();
+        return scheduleService
+                .getAllSchedules()
+                .stream()
+                .map((ScheduleDTO::convertScheduleToScheduleDTO))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/pet/{petId}")
     public List<ScheduleDTO> getScheduleForPet(@PathVariable long petId) {
-        throw new UnsupportedOperationException();
+        return scheduleService
+                .getAllSchedulesByPet(petId)
+                .stream()
+                .map((ScheduleDTO::convertScheduleToScheduleDTO))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/employee/{employeeId}")
     public List<ScheduleDTO> getScheduleForEmployee(@PathVariable long employeeId) {
-        throw new UnsupportedOperationException();
+        return scheduleService
+                .getAllSchedulesByEmployeeId(employeeId)
+                .stream()
+                .map((ScheduleDTO::convertScheduleToScheduleDTO))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/customer/{customerId}")
     public List<ScheduleDTO> getScheduleForCustomer(@PathVariable long customerId) {
-        throw new UnsupportedOperationException();
+        return scheduleService
+                .getAllSchedulesByOwnerId(customerId)
+                .stream()
+                .map((ScheduleDTO::convertScheduleToScheduleDTO))
+                .collect(Collectors.toList());
     }
 }

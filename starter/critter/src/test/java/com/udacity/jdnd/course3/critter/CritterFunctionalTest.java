@@ -24,7 +24,7 @@ import java.util.stream.IntStream;
  * Students will need to configure the application to run these tests by adding application.properties file
  * to the test/resources directory that specifies the datasource. It can run using an in-memory H2 instance
  * and should not try to re-use the same datasource used by the rest of the app.
- *
+ * <p>
  * These tests should all pass once the project is complete.
  */
 @Transactional
@@ -41,7 +41,7 @@ public class CritterFunctionalTest {
     private ScheduleController scheduleController;
 
     @Test
-    public void testCreateCustomer(){
+    public void testCreateCustomer() {
         CustomerDTO customerDTO = createCustomerDTO();
         CustomerDTO newCustomer = userController.saveCustomer(customerDTO);
         CustomerDTO retrievedCustomer = userController.getAllCustomers().get(0);
@@ -51,7 +51,7 @@ public class CritterFunctionalTest {
     }
 
     @Test
-    public void testCreateEmployee(){
+    public void testCreateEmployee() {
         EmployeeDTO employeeDTO = createEmployeeDTO();
         EmployeeDTO newEmployee = userController.saveEmployee(employeeDTO);
         EmployeeDTO retrievedEmployee = userController.getEmployee(newEmployee.getId());
@@ -186,19 +186,24 @@ public class CritterFunctionalTest {
         employeeTemp.setDaysAvailable(Sets.newHashSet(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY));
         EmployeeDTO employeeDTO = userController.saveEmployee(employeeTemp);
         CustomerDTO customerDTO = userController.saveCustomer(createCustomerDTO());
+
+        PetTypeDTO petTypeDTO = createPetTypeDTO();
+        PetTypeDTO newPetType = petController.savePetType(petTypeDTO);
+
         PetDTO petTemp = createPetDTO();
         petTemp.setOwnerId(customerDTO.getId());
+        petTemp.setTypeId(newPetType.getId());
         PetDTO petDTO = petController.savePet(petTemp);
 
         LocalDate date = LocalDate.of(2019, 12, 25);
         List<Long> petList = Lists.newArrayList(petDTO.getId());
         List<Long> employeeList = Lists.newArrayList(employeeDTO.getId());
-        Set<EmployeeSkill> skillSet =  Sets.newHashSet(EmployeeSkill.PETTING);
+        Set<EmployeeSkill> skillSet = Sets.newHashSet(EmployeeSkill.PETTING);
 
         scheduleController.createSchedule(createScheduleDTO(petList, employeeList, date, skillSet));
         ScheduleDTO scheduleDTO = scheduleController.getAllSchedules().get(0);
 
-        Assertions.assertEquals(scheduleDTO.getSkills(), skillSet);
+        Assertions.assertEquals(scheduleDTO.getActivities(), skillSet);
         Assertions.assertEquals(scheduleDTO.getDate(), date);
         Assertions.assertEquals(scheduleDTO.getEmployeeIds(), employeeList);
         Assertions.assertEquals(scheduleDTO.getPetIds(), petList);
@@ -206,16 +211,22 @@ public class CritterFunctionalTest {
 
     @Test
     public void testFindScheduleByEntities() {
-        ScheduleDTO sched1 = populateSchedule(1, 2, LocalDate.of(2019, 12, 25), Sets.newHashSet(EmployeeSkill.FEEDING, EmployeeSkill.WALKING));
-        ScheduleDTO sched2 = populateSchedule(3, 1, LocalDate.of(2019, 12, 26), Sets.newHashSet(EmployeeSkill.PETTING));
+        PetTypeDTO petType = petController.savePetType(createPetTypeDTO());
+        ScheduleDTO sched1 = populateSchedule(1, 2,
+                LocalDate.of(2019, 12, 25),
+                Sets.newHashSet(EmployeeSkill.FEEDING, EmployeeSkill.WALKING), petType);
+
+        ScheduleDTO sched2 = populateSchedule(3, 1,
+                LocalDate.of(2019, 12, 26),
+                Sets.newHashSet(EmployeeSkill.PETTING), petType);
 
         //add a third schedule that shares some employees and pets with the other schedules
         ScheduleDTO sched3 = new ScheduleDTO();
         sched3.setEmployeeIds(sched1.getEmployeeIds());
         sched3.setPetIds(sched2.getPetIds());
-        sched3.setSkills(Sets.newHashSet(EmployeeSkill.SHAVING, EmployeeSkill.PETTING));
-        sched3.setDate(LocalDate.of(2020, 3, 23));
-        scheduleController.createSchedule(sched3);
+        sched3.setActivities(Sets.newHashSet(EmployeeSkill.FEEDING, EmployeeSkill.WALKING));
+        sched3.setDate(sched1.getDate());
+        ScheduleDTO sss = scheduleController.createSchedule(sched3);
 
         /*
             We now have 3 schedule entries. The third schedule entry has the same employees as the 1st schedule
@@ -225,39 +236,46 @@ public class CritterFunctionalTest {
 
         //Employee 1 in is both schedule 1 and 3
         List<ScheduleDTO> scheds1e = scheduleController.getScheduleForEmployee(sched1.getEmployeeIds().get(0));
-        compareSchedules(sched1, scheds1e.get(0));
-        compareSchedules(sched3, scheds1e.get(1));
+        compareEmplyeesInSchedules(sched1, scheds1e.get(0));
+        compareEmplyeesInSchedules(sched1, scheds1e.get(1));
 
         //Employee 2 is only in schedule 2
         List<ScheduleDTO> scheds2e = scheduleController.getScheduleForEmployee(sched2.getEmployeeIds().get(0));
-        compareSchedules(sched2, scheds2e.get(0));
+        comparePetsInSchedules(sched2, scheds2e.get(0));
 
         //Pet 1 is only in schedule 1
         List<ScheduleDTO> scheds1p = scheduleController.getScheduleForPet(sched1.getPetIds().get(0));
-        compareSchedules(sched1, scheds1p.get(0));
+        comparePetsInSchedules(sched1, scheds1p.get(0));
 
         //Pet from schedule 2 is in both schedules 2 and 3
         List<ScheduleDTO> scheds2p = scheduleController.getScheduleForPet(sched2.getPetIds().get(0));
-        compareSchedules(sched2, scheds2p.get(0));
-        compareSchedules(sched3, scheds2p.get(1));
+        comparePetsInSchedules(sched2, scheds2p.get(0));
+        comparePetsInSchedules(sched3, scheds2p.get(1));
 
         //Owner of the first pet will only be in schedule 1
         List<ScheduleDTO> scheds1c = scheduleController.getScheduleForCustomer(userController.getOwnerByPet(sched1.getPetIds().get(0)).getId());
-        compareSchedules(sched1, scheds1c.get(0));
+        comparePetsInSchedules(sched1, scheds1c.get(0));
 
         //Owner of pet from schedule 2 will be in both schedules 2 and 3
         List<ScheduleDTO> scheds2c = scheduleController.getScheduleForCustomer(userController.getOwnerByPet(sched2.getPetIds().get(0)).getId());
-        compareSchedules(sched2, scheds2c.get(0));
-        compareSchedules(sched3, scheds2c.get(1));
+        comparePetsInSchedules(sched2, scheds2c.get(0));
+        comparePetsInSchedules(sched3, scheds2c.get(1));
     }
 
 
     private static EmployeeDTO createEmployeeDTO() {
         EmployeeDTO employeeDTO = new EmployeeDTO();
         employeeDTO.setName("TestEmployee");
-        employeeDTO.setSkills(Sets.newHashSet(EmployeeSkill.FEEDING, EmployeeSkill.PETTING));
+        employeeDTO.setSkills(Sets.newHashSet(
+                EmployeeSkill.WALKING,
+                EmployeeSkill.FEEDING,
+                EmployeeSkill.SHAVING,
+                EmployeeSkill.PETTING
+                )
+        );
         return employeeDTO;
     }
+
     private static CustomerDTO createCustomerDTO() {
         CustomerDTO customerDTO = new CustomerDTO();
         customerDTO.setName("TestEmployee");
@@ -295,11 +313,16 @@ public class CritterFunctionalTest {
         scheduleDTO.setPetIds(petIds);
         scheduleDTO.setEmployeeIds(employeeIds);
         scheduleDTO.setDate(date);
-        scheduleDTO.setSkills(activities);
+        scheduleDTO.setActivities(activities);
         return scheduleDTO;
     }
 
-    private ScheduleDTO populateSchedule(int numEmployees, int numPets, LocalDate date, Set<EmployeeSkill> activities) {
+    private ScheduleDTO populateSchedule(int numEmployees,
+                                         int numPets,
+                                         LocalDate date,
+                                         Set<EmployeeSkill> activities,
+                                         PetTypeDTO petType
+    ) {
         List<Long> employeeIds = IntStream.range(0, numEmployees)
                 .mapToObj(i -> createEmployeeDTO())
                 .map(e -> {
@@ -312,16 +335,21 @@ public class CritterFunctionalTest {
                 .mapToObj(i -> createPetDTO())
                 .map(p -> {
                     p.setOwnerId(cust.getId());
+                    p.setTypeId(petType.getId());
                     return petController.savePet(p).getId();
                 }).collect(Collectors.toList());
         return scheduleController.createSchedule(createScheduleDTO(petIds, employeeIds, date, activities));
     }
 
-    private static void compareSchedules(ScheduleDTO sched1, ScheduleDTO sched2) {
-        Assertions.assertEquals(sched1.getPetIds(), sched2.getPetIds());
-        Assertions.assertEquals(sched1.getSkills(), sched2.getSkills());
+    private static void compareEmplyeesInSchedules(ScheduleDTO sched1, ScheduleDTO sched2) {
+        Assertions.assertEquals(sched1.getActivities(), sched2.getActivities());
         Assertions.assertEquals(sched1.getEmployeeIds(), sched2.getEmployeeIds());
         Assertions.assertEquals(sched1.getDate(), sched2.getDate());
     }
+
+    private static void comparePetsInSchedules(ScheduleDTO sched1, ScheduleDTO sched2) {
+        Assertions.assertEquals(sched1.getPetIds(), sched2.getPetIds());
+    }
+
 
 }

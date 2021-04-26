@@ -27,7 +27,7 @@ public class PetService {
     }
 
     public Pet getPet(Long id){
-        return petRepository.findById(id).orElse(null);
+        return petRepository.findById(id).orElseThrow(PetNotFoundException::new);
     }
 
     public PetType createPetType(PetType petType){
@@ -35,7 +35,7 @@ public class PetService {
     }
 
     public PetType getPetType(Long id){
-        return petTypeRepository.findById(id).orElse(null);
+        return petTypeRepository.findById(id).orElseThrow(PetTypeNotFoundException::new);
     }
 
     public Activity createPetBehaviour(Activity activity){
@@ -48,6 +48,10 @@ public class PetService {
 
     public List<Pet> getPets() {
         return petRepository.findAll();
+    }
+
+    public List<Pet> getPetsByIds(List<Long> ids) {
+        return petRepository.findAllById(ids);
     }
 
     public List<Activity> getPetActivitiesByTypeId(Long petTypeId) {

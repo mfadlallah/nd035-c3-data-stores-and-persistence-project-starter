@@ -1,7 +1,8 @@
 package com.udacity.jdnd.course3.critter.schedule;
 
-import com.udacity.jdnd.course3.critter.entity.Activity;
+import com.udacity.jdnd.course3.critter.entity.Pet;
 import com.udacity.jdnd.course3.critter.entity.Schedule;
+import com.udacity.jdnd.course3.critter.entity.User;
 import com.udacity.jdnd.course3.critter.user.EmployeeSkill;
 import org.springframework.beans.BeanUtils;
 
@@ -22,7 +23,7 @@ public class ScheduleDTO {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Set<EmployeeSkill> skills;
+    private Set<EmployeeSkill> activities;
 
     public List<Long> getEmployeeIds() {
         return employeeIds;
@@ -48,12 +49,12 @@ public class ScheduleDTO {
         this.date = date;
     }
 
-    public  Set<EmployeeSkill> getSkills() {
-        return skills;
+    public  Set<EmployeeSkill> getActivities() {
+        return activities;
     }
 
-    public void setSkills(Set<EmployeeSkill> skills) {
-        this.skills = skills;
+    public void setActivities(Set<EmployeeSkill> activities) {
+        this.activities = activities;
     }
 
     public long getId() {
@@ -83,6 +84,9 @@ public class ScheduleDTO {
     public static ScheduleDTO convertScheduleToScheduleDTO(Schedule schedule) {
         ScheduleDTO scheduleDTO = new ScheduleDTO();
         BeanUtils.copyProperties(schedule, scheduleDTO);
+        scheduleDTO.setEmployeeIds(schedule.getEmployees().stream().map(User::getId).collect(Collectors.toList()));
+        scheduleDTO.setPetIds(schedule.getPets().stream().map(Pet::getId).collect(Collectors.toList()));
+        scheduleDTO.setActivities(schedule.getSkills());
         return scheduleDTO;
     }
 }

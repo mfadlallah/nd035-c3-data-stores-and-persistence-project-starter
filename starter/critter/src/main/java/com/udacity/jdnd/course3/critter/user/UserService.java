@@ -1,6 +1,5 @@
 package com.udacity.jdnd.course3.critter.user;
 
-import com.udacity.jdnd.course3.critter.entity.Activity;
 import com.udacity.jdnd.course3.critter.entity.Employee;
 import com.udacity.jdnd.course3.critter.entity.Owner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -34,12 +31,12 @@ public class UserService {
     }
 
     public Owner getOwner(Long id) {
-        return ownerRepository.findById(id).orElse(null);
+        return ownerRepository.findById(id).orElseThrow(OwnerNotFoundException::new);
     }
 
 
     public Owner getOwnerByPetId(Long id) {
-        return ownerRepository.findByPetsId(id).orElse(null);
+        return ownerRepository.findByPetsId(id).orElseThrow(OwnerNotFoundException::new);
     }
 
 
@@ -48,7 +45,7 @@ public class UserService {
     }
 
     public void updateEmployeeSchedule(Set<DayOfWeek> newSchdule, Long employeeId) {
-        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        Employee employee = employeeRepository.findById(employeeId).orElseThrow(EmployeeNotFoundException::new);
         if (employee != null) {
             employee.setDaysAvailable(newSchdule);
             employeeRepository.save(employee);
@@ -57,10 +54,24 @@ public class UserService {
 
     public List<Employee> getAvailableEmployees(LocalDate date, Set<EmployeeSkill> skills) {
         return employeeRepository.getEmployees(date.getDayOfWeek())
-                .orElse(new ArrayList<>())
+                .orElseThrow(EmployeeNotFoundException::new)
                 .stream()
                 .filter(employee -> employee.getSkills().containsAll(skills))
         .collect(Collectors.toList());
+    }
+
+
+    public List<Employee> getAvailableEmployees(List<Long> ids, LocalDate date, Set<EmployeeSkill> skills) {
+        return employeeRepository.getEmployeesByDateAndIds(date.getDayOfWeek(), ids)
+                .orElseThrow(EmployeeNotFoundException::new)
+                .stream()
+                .filter(employee -> employee.getSkills().containsAll(skills))
+                .collect(Collectors.toList());
+    }
+
+
+    public List<Employee> getEmployeesByIds(List<Long>ids) {
+        return employeeRepository.findAllById(ids);
     }
 
     public List<Owner> getAllOwners() {

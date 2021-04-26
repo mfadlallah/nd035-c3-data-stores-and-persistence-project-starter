@@ -5,6 +5,7 @@ import com.udacity.jdnd.course3.critter.user.EmployeeSkill;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -15,11 +16,11 @@ public class Schedule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "schedule", cascade = CascadeType.ALL)
-    private List<Employee> employees;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Employee> employees = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "schedule", cascade = CascadeType.ALL)
-    private List<Pet> pets;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Pet> pets = new ArrayList<>();
 
     @Enumerated
     @ElementCollection(targetClass = EmployeeSkill.class)
@@ -83,6 +84,31 @@ public class Schedule {
 
     public void setSkills(Set<EmployeeSkill> skills) {
         this.skills = skills;
+    }
+
+    public Schedule() {
+    }
+
+    public void addAllEmployees(List<Employee> employees) {
+        for (Employee emp : employees) {
+            addEmployee(emp);
+        }
+    }
+
+    public void addAllPets(List<Pet> pets) {
+        for (Pet pet : pets) {
+            addPet(pet);
+        }
+    }
+
+    public void addEmployee(Employee employee) {
+        employees.add( employee );
+        employee.getSchedules().add( this );
+    }
+
+    public void addPet(Pet pet) {
+        pets.add( pet );
+        pet.getSchedules().add( this );
     }
 
     @Override

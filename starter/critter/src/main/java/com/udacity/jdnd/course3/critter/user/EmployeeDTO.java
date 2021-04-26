@@ -1,14 +1,11 @@
 package com.udacity.jdnd.course3.critter.user;
 
-import com.udacity.jdnd.course3.critter.entity.Activity;
 import com.udacity.jdnd.course3.critter.entity.Employee;
-import com.udacity.jdnd.course3.critter.entity.Owner;
 import org.springframework.beans.BeanUtils;
 
 import java.time.DayOfWeek;
-import java.util.List;
+import java.time.LocalTime;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents the form that employee request and response data takes. Does not map
@@ -19,6 +16,7 @@ public class EmployeeDTO {
     private String name;
     private Set<EmployeeSkill> skills;
     private Set<DayOfWeek> daysAvailable;
+    private LocalTime timeSlot;
 
     public long getId() {
         return id;
@@ -50,6 +48,14 @@ public class EmployeeDTO {
 
     public void setDaysAvailable(Set<DayOfWeek> daysAvailable) {
         this.daysAvailable = daysAvailable;
+    }
+
+    public LocalTime getTimeSlot() {
+        return timeSlot;
+    }
+
+    public void setTimeSlot(LocalTime timeSlot) {
+        this.timeSlot = timeSlot;
     }
 
     public static EmployeeDTO convertEmployeeToEmployeeDTO(Employee employee) {

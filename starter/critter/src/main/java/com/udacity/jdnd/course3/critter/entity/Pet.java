@@ -7,6 +7,8 @@ import org.hibernate.annotations.Nationalized;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -38,9 +40,8 @@ public class Pet {
     @JoinColumn(name = "owner_id")  //map the join column in the owner table
     private Owner owner;
 
-    @ManyToOne(fetch = FetchType.LAZY) //many employees can belong to one schedule
-    @JoinColumn(name = "schedule_id")  //map the join column in the schedule table
-    private Schedule schedule;
+    @ManyToMany(mappedBy = "pets") //many pets can belong to many schedules
+    private List<Schedule> schedules = new ArrayList<>();
 
     public Pet() {
     }
@@ -54,8 +55,7 @@ public class Pet {
                PetType type,
                LocalDate birthDate,
                String notes,
-               Owner owner,
-               Schedule schedule
+               Owner owner
     ) {
         this.id = id;
         this.name = name;
@@ -63,7 +63,6 @@ public class Pet {
         this.birthDate = birthDate;
         this.notes = notes;
         this.owner = owner;
-        this.schedule = schedule;
     }
 
     public void addPetType(PetType petType) {
@@ -116,14 +115,6 @@ public class Pet {
         this.owner = owner;
     }
 
-    public Schedule getSchedule() {
-        return schedule;
-    }
-
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
-    }
-
     public Long getId() {
         return id;
     }
@@ -140,9 +131,12 @@ public class Pet {
         this.name = name;
     }
 
-    public void addType(PetType type) {
-        type.setPet(this);
-        this.type = type;
+    public List<Schedule> getSchedules() {
+        return schedules;
+    }
+
+    public void setSchedules(List<Schedule> schedules) {
+        this.schedules = schedules;
     }
 
     @Override
